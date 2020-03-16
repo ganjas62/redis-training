@@ -53,7 +53,7 @@ public class RedisServiceImplTest {
   }
 
   @Test
-  public void deleteKeyTest() {
+  public void expireKeyTest() {
     Flux<Object> result = serviceImpl.setValue("testKey", "value")
         .then(serviceImpl.getValue("testKey"))
         .then(serviceImpl.expireKey("testKey", 5))
@@ -64,5 +64,25 @@ public class RedisServiceImplTest {
         .expectNext("value")
         .expectNext("value")
         .verifyComplete();
+  }
+
+  @Test
+  public void deleteKeyTest() {
+    Mono<Object> resultBeforeDeletion =
+        serviceImpl.setValue("testKey2", "value2").then(serviceImpl.getValue("testKey2"));
+    StepVerifier.create(resultBeforeDeletion).expectNext("value2").verifyComplete();
+    Mono<Object> resultAfterDeletion =
+        serviceImpl.deleteKey("testKey2").then(serviceImpl.getValue("testKey2"));
+    StepVerifier.create(resultAfterDeletion).verifyComplete();
+  }
+
+  @Test
+  public void listOperationsTest() {
+    Flux<Object> result = serviceImpl.rightPush("listKey", 3)
+        .then(serviceImpl.leftPush("listKey", 2))
+        .then(serviceImpl.leftPush("listKey", 1))
+        .thenMany(serviceImpl.listRange("listKey", 0, -1));
+    StepVerifier.create(result).expectNext(1, 2, 3).verifyComplete();
+    StepVerifier.create(serviceImpl.listRange("listKey", 0, -2)).expectNext(1, 2).verifyComplete();
   }
 }

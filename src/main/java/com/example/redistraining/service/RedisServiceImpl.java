@@ -22,6 +22,17 @@ public class RedisServiceImpl {
     return redisTemplate.opsForValue().get(key);
   }
 
+  public Mono<Object> getValueWithTime(String key) throws InterruptedException {
+    Mono<Object> cachedValue = getValue(key);
+    return cachedValue.switchIfEmpty(process(key));
+  }
+
+  public Mono<Object> process(String key) throws InterruptedException {
+    Thread.sleep(5000);
+    String hasil = "Hasil method " + key;
+    return setValue(key, hasil).then(Mono.just(hasil));
+  }
+
   public Mono<Long> incrementValue(String key) {
     return redisTemplate.opsForValue().increment(key);
   }

@@ -47,6 +47,14 @@ public class RedisServiceImplTest {
   }
 
   @Test
+  public void testWithTime() throws InterruptedException {
+    String key = "timeKey";
+    Mono<Object> result = serviceImpl.getValueWithTime(key);
+    StepVerifier.create(result).expectNext("Hasil method " + key).verifyComplete();
+    StepVerifier.create(result).expectNext("Hasil method " + key).verifyComplete();
+  }
+
+  @Test
   public void incrementTest() {
     Mono<Long> result = serviceImpl.incrementValue("incKey").log();
     StepVerifier.create(result).expectNext(Long.valueOf(1)).verifyComplete();
